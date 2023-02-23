@@ -1,0 +1,1 @@
+# qureos-frontend-assignment
