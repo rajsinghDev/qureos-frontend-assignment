@@ -1,8 +1,14 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import FilterPage from "./pages/filter";
 
 function App() {
   return (
     <>
-    <div>Initial Commit</div>
+      <Router>
+        <Routes>
+          <Route path="/" element={<FilterPage />} />
+        </Routes>
+      </Router>
     </>
   );
 }
