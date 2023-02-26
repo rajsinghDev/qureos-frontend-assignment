@@ -1,7 +1,7 @@
 import Filters from "../../components/Filters";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { dummyData } from "../../utils/constant";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 type DummyDataType = {
   Bedrooms: string;
@@ -11,8 +11,9 @@ type DummyDataType = {
 };
 
 const FilterPage = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const params = new URLSearchParams(searchParams);
+  const location = useLocation();
 
   const filters = useMemo(() => {
     let data: { [key in keyof DummyDataType]: string | undefined } = {
@@ -30,25 +31,38 @@ const FilterPage = () => {
         return (
           (key !== "PropertyType" &&
             filters[key as keyof DummyDataType] === "Any") ||
+          (key === "PropertyType" &&
+            filters[key as keyof DummyDataType] === null) ||
           filters[key as keyof DummyDataType] ===
             item[key as keyof DummyDataType] ||
           (key !== "PropertyType" &&
             Number(item[key as keyof DummyDataType]) > 8) ||
-          window?.location.search === ("" || "?PropertyType=null")
+          location.search === ("" || "?PropertyType=null")
         );
       });
     });
     return data;
   }, [searchParams]);
 
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const propertyType = searchParams.get("PropertyType");
+    if (propertyType === "") {
+      searchParams.delete("PropertyType");
+      setSearchParams(searchParams);
+    }
+  }, [location.search, location.pathname]);
+
   const renderTableCheck = useMemo(() => {
     let check =
-      (window?.location.search === "" ||
-        window?.location.search === "?PropertyType=" ||
-        window?.location.search === "?Bathrooms=Any") &&
+      (location.search === "" ||
+        location.search === "?PropertyType=" ||
+        location.search === "?Bathrooms=Any" ||
+        location.search === "?Beds=Any" ||
+        location.search === "?Bedrooms=Any") &&
       filterData.length === 0;
     return check;
-  }, [filterData, window?.location.search]);
+  }, [filterData, location.search]);
 
   const recordCount = useMemo(() => {
     if (renderTableCheck) return dummyData.length;
@@ -119,7 +133,7 @@ const FilterPage = () => {
                     )}
                   </tbody>
                 </table>
-                {!renderTableCheck ? (
+                {filterData.length === 0 && !renderTableCheck ? (
                   <div className="text-center py-4">No data found!</div>
                 ) : null}
               </div>
